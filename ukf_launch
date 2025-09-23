@@ -1,18 +1,28 @@
 <launch>
-  <!-- UKF 스캔 필터 -->
-  <node pkg="turtlebot3_ukf_filter" type="ukf_scan_filter.py"
-        name="ukf_scan_filter" output="screen">
+  <!-- UKF 스캔 필터: 우리 패키지/우리 노드 -->
+  <node pkg="turtlebot3_ukf" type="ukf_scan_filter.py"
+        name="ukf_scan_filter" output="screen" required="true">
     <param name="in_scan_topic"  value="/scan"/>
     <param name="out_scan_topic" value="/scan_ukf"/>
     <param name="process_noise_q" value="0.02"/>
     <param name="meas_noise_r"    value="0.05"/>
   </node>
 
-  <!-- 패키지 기본 런치를 include 하고 /scan 을 /scan_ukf 로 리맵 -->
+  <!-- gmapping: UKF 출력 사용 -->
+  <node pkg="gmapping" type="slam_gmapping"
+        name="slam_gmapping" output="screen">
+    <remap from="scan" to="/scan_ukf"/>
+  </node>
+
+  <!-- (선택) TB3 기본 SLAM 런치도 같이 열고 싶으면 포함 -->
   <include file="$(find turtlebot3_slam)/launch/turtlebot3_slam.launch">
     <arg name="slam_methods" value="gmapping"/>
-    <remap from="scan" to="/scan_ukf"/>
   </include>
 
-  <node pkg="rviz" type="rviz" name="rviz" output="screen"/>
+  <!-- RViz는 수동 실행 -->
+<!--
+<node pkg="rviz" type="rviz" name="rviz_ukf" output="screen"
+      args="-d $(find turtlebot3_slam)/rviz/turtlebot3_slam.rviz"/>
+-->
+
 </launch>
