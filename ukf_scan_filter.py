@@ -10,47 +10,68 @@ from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 from filterpy.kalman import UnscentedKalmanFilter as UKF
 from filterpy.kalman import MerweScaledSigmaPoints
 
+
 class PerBeamUKF:
-    """각 각도(beam)마다 1차원 UKF를 운용: r_k = r_{k-1} + w, z_k = r_k + v"""
-    def __init__(self, n_beams, q=0.02, r=0.05, init_range=1.0):
+    """각 각도(beam)마다 1차원 UKF 운용: r_k = r_{k-1} + w, z_k = r_k + v"""
+    def __init__(self, q=0.02, r=0.05, init_range=1.0):
         self.n = 1
-        self.n_beams = n_beams
         self.filters = []
         self.q = q
         self.r = r
+        self.init_range = init_range
 
-        def fx(x, dt):  # 상태전이: 항등 + 잡음
+        def fx(x, dt):  # 상태전이
             return x
 
-        def hx(x):      # 관측: 항등
+        def hx(x):      # 관측
             return x
 
-        for _ in range(n_beams):
-            sigmas = MerweScaledSigmaPoints(n=self.n, alpha=0.3, beta=2.0, kappa=0.0)
-            f = UKF(dim_x=self.n, dim_z=self.n, fx=fx, hx=hx, dt=0.05, points=sigmas)
-            f.x = np.array([init_range], dtype=float)
-            f.P *= 0.3
-            f.Q = np.array([[self.q]], dtype=float)
-            f.R = np.array([[self.r]], dtype=float)
-            self.filters.append(f)
+        self.fx = fx
+        self.hx = hx
+
+    def _make_filter(self, init_value=None):
+        sigmas = MerweScaledSigmaPoints(n=self.n, alpha=0.3, beta=2.0, kappa=0.0)
+        f = UKF(dim_x=self.n, dim_z=self.n, fx=self.fx, hx=self.hx, dt=0.05, points=sigmas)
+        f.x = np.array([self.init_range if init_value is None else init_value], dtype=float)
+        f.P *= 0.3
+        f.Q = np.array([[self.q]], dtype=float)
+        f.R = np.array([[self.r]], dtype=float)
+        return f
+
+    def ensure_size(self, n_beams):
+        """필터 뱅크 개수를 스캔 길이에 맞춤(증가/감소 둘 다 처리)"""
+        cur = len(self.filters)
+        if cur < n_beams:
+            last = float(self.filters[-1].x[0]) if self.filters else self.init_range
+            for _ in range(n_beams - cur):
+                self.filters.append(self._make_filter(last))
+        elif cur > n_beams:
+            # 남는 필터는 버림
+            self.filters = self.filters[:n_beams]
 
     def update_scan(self, ranges):
         """ranges(list/np.array) -> UKF로 필터링된 ranges 반환"""
         out = np.array(ranges, dtype=float, copy=True)
+        n = out.shape[0]
+        self.ensure_size(n)
 
-        for i in range(self.n_beams):
-            z = out[i]
-            # Inf/NaN 은 최신 추정으로 대체(관측 업데이트 없이 예측만)
+        # 실제 길이만큼만 순회 (index out 방지)
+        for i, z in enumerate(out):
+            f = self.filters[i]
             if np.isfinite(z):
-                self.filters[i].predict()
-                self.filters[i].update([z])
-                out[i] = float(self.filters[i].x[0])
+                f.predict()
+                f.update([z])
+                out[i] = float(f.x[0])
             else:
-                self.filters[i].predict()
-                out[i] = float(self.filters[i].x[0])
+                f.predict()
+                out[i] = float(f.x[0])
 
-        # 음수/말도 안 되는 값 clip
-        out = np.clip(out, 0.0, np.nanmax(out[np.isfinite(out)]) if np.any(np.isfinite(out)) else 10.0)
+        # clip(모두 NaN인 경우 대비)
+        finite = np.isfinite(out)
+        if np.any(finite):
+            out = np.clip(out, 0.0, float(np.nanmax(out[finite])))
+        else:
+            out[:] = 0.0
         return out.tolist()
 
 
@@ -68,25 +89,16 @@ class UKFScanFilterNode:
         self.pub_scan = rospy.Publisher(self.out_topic, LaserScan, queue_size=1)
         self.pub_diag = rospy.Publisher("/turtlebot3_diagnostics", DiagnosticArray, queue_size=1)
 
-        self.filter_bank = None
-        self.last_stamp = None
+        self.filter_bank = PerBeamUKF(q=self.q, r=self.r, init_range=self.init_range)
 
         rospy.Subscriber(self.in_topic, LaserScan, self.cb_scan, queue_size=1)
         rospy.loginfo("[ukf_scan_filter] subscribe: %s -> publish: %s", self.in_topic, self.out_topic)
 
     def cb_scan(self, msg: LaserScan):
-        n_beams = len(msg.ranges)
-
-        if self.filter_bank is None:
-            self.filter_bank = PerBeamUKF(
-                n_beams=n_beams, q=self.q, r=self.r, init_range=self.init_range
-            )
-            rospy.loginfo("[ukf_scan_filter] UKF bank initialized: %d beams", n_beams)
-
-        # 필터링
+        # 필터링 (내부에서 길이 자동 동기화)
         filtered = self.filter_bank.update_scan(msg.ranges)
 
-        # LaserScan 메시지 재구성
+        # LaserScan 재구성
         out = LaserScan()
         out.header = msg.header
         out.angle_min = msg.angle_min
@@ -98,14 +110,15 @@ class UKFScanFilterNode:
         out.range_max = msg.range_max
         out.ranges = filtered
         out.intensities = msg.intensities
-
         self.pub_scan.publish(out)
 
-        # 진단 정보 발행(스캔 품질 지표 몇 가지)
-        finite = np.isfinite(np.array(msg.ranges))
-        invalid_ratio = 1.0 - float(np.sum(finite)) / float(len(msg.ranges))
-        mean_raw = float(np.nanmean(np.array(msg.ranges, dtype=float))) if np.any(finite) else float('nan')
-        mean_flt = float(np.nanmean(np.array(filtered, dtype=float)))
+        # Diagnostics 발행
+        raw_np = np.asarray(msg.ranges, dtype=float)
+        flt_np = np.asarray(filtered, dtype=float)
+        finite = np.isfinite(raw_np)
+        invalid_ratio = 1.0 - (float(np.sum(finite)) / float(raw_np.size) if raw_np.size else 1.0)
+        mean_raw = float(np.nanmean(raw_np)) if np.any(finite) else float('nan')
+        mean_flt = float(np.nanmean(flt_np)) if flt_np.size else float('nan')
 
         da = DiagnosticArray()
         da.header.stamp = rospy.Time.now()
@@ -119,7 +132,8 @@ class UKFScanFilterNode:
             KeyValue(key="mean_raw", value=f"{mean_raw:.3f}"),
             KeyValue(key="mean_filtered", value=f"{mean_flt:.3f}"),
             KeyValue(key="q(process_noise)", value=f"{self.q}"),
-            KeyValue(key="r(meas_noise)", value=f"{self.r}")
+            KeyValue(key="r(meas_noise)", value=f"{self.r}"),
+            KeyValue(key="beams", value=str(len(filtered))),
         ]
         da.status.append(st)
         self.pub_diag.publish(da)
