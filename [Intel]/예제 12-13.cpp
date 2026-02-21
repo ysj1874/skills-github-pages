@@ -8,10 +8,10 @@ int main(void)
 {
 	char str[80] = "strawberry";
 
-	printf("¹Ù²Ù±â Àü ¹®ÀÚ¿­ : %s\n", str);
+	printf("ë°”ê¾¸ê¸° ì „ ë¬¸ìì—´ : %s\n", str);
 	my_strcpy(str, "apple");
-	printf("¹Ù²Û ÈÄ ¹®ÀÚ¿­ : %s\n", str);
-	printf("´Ù¸¥ ¹®ÀÚ¿­ ´ëÀÔ : %s\n", my_strcpy(str, "kiwi"));
+	printf("ë°”ê¾¼ í›„ ë¬¸ìì—´ : %s\n", str);
+	printf("ë‹¤ë¥¸ ë¬¸ìì—´ ëŒ€ì… : %s\n", my_strcpy(str, "kiwi"));
 
 	return 0;
 }
