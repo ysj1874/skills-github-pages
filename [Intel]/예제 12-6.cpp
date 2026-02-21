@@ -5,12 +5,12 @@ int main() {
 	int age;
 	char name[20];
 
-	printf("³ªÀÌ ÀÔ·Â : ");
+	printf("ë‚˜ì´ ì…ë ¥ : ");
 	scanf_s("%d", &age);
 
-	printf("ÀÌ¸§ ÀÔ·Â : ");
+	printf("ì´ë¦„ ì…ë ¥ : ");
 	gets_s(name);
-	printf("³ªÀÌ : %d, ÀÌ¸§ : %s\n", age, name);
+	printf("ë‚˜ì´ : %d, ì´ë¦„ : %s\n", age, name);
 
 	return 0;
 }
