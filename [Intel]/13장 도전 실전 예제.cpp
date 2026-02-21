@@ -16,7 +16,7 @@ int main(void)
 }
 
 void input_data(int* pa, int* pb) {
-	printf("µÎ Á¤¼ö ÀÔ·Â : ");
+	printf("ÂµÃ ÃÂ¤Â¼Ã¶ Ã€Ã”Â·Ã‚ : ");
 	scanf_s("%d%d", pa, pb);
 }
 
@@ -28,5 +28,5 @@ void swap_data() {
 }
 
 void print_data(int a, int b) {
-	printf("µÎ Á¤¼ö Ãâ·Â : %d, %d", a, b);
+	printf("ÂµÃ ÃÂ¤Â¼Ã¶ ÃƒÃ¢Â·Ã‚ : %d, %d", a, b);
 }
