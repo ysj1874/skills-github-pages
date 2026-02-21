@@ -8,7 +8,7 @@ int main() {
 
 	for (i = 0; i < 3; i++)
 	{
-		printf("4°ú¸ñÀÇ Á¡¼ö ÀÔ·Â : ");
+		printf("4ê³¼ëª©ì˜ ì ìˆ˜ ìž…ë ¥ : ");
 		for (j = 0; j < 4; j++)
 		{
 			scanf_s("%d", &score[i][j]);
@@ -23,7 +23,7 @@ int main() {
 			total += score[i][j];
 		}
 		avg = total / 4.0;
-		printf("ÃÑÁ¡ : %d, Æò±Õ : %.2lf\n", total, avg);
+		printf("ì´ì  : %d, í‰ê·  : %.2lf\n", total, avg);
 	}
 	return 0;
 }
