@@ -7,7 +7,7 @@ int main(void)
 	char str[7];
 
 	my_gets(str, sizeof(str));
-	printf("ÀÔ·ÂÇÑ ¹®ÀÚ¿­ : %s\n", str);
+	printf("Ã€Ã”Â·Ã‚Ã‡Ã‘ Â¹Â®Ã€ÃšÂ¿Â­ : %s\n", str);
 
 	return 0;
 }
