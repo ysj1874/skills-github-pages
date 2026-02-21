@@ -15,7 +15,7 @@ int main() {
         if (cnt > max_word_length) max_word_length = cnt;
         cnt = 0;
     } while (loop);
-    printf("°¡Àå ±ä ´Ü¾îÀÇ ±æÀÌ : %d", max_word_length);
+    printf("Â°Â¡Ã€Ã¥ Â±Ã¤ Â´ÃœÂ¾Ã®Ã€Ã‡ Â±Ã¦Ã€ÃŒ : %d", max_word_length);
 
     return 0;
 }
