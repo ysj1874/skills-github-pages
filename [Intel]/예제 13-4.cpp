@@ -6,13 +6,13 @@ void static_func(void);
 int main(void) {
 	int i;
 
-	printf("ÀÏ¹İ Áö¿ª º¯¼ö(auto)¸¦ »ç¿ëÇÑ ÇÔ¼ö...\n");
+	printf("ì¼ë°˜ ì§€ì—­ ë³€ìˆ˜(auto)ë¥¼ ì‚¬ìš©í•œ í•¨ìˆ˜...\n");
 	for (i = 0; i < 3; i++)
 	{
 		auto_func();
 	}
 
-	printf("Á¤Àû Áö¿ª º¯¼ö(static)¸¦ »ç¿ëÇÑ ÇÔ¼ö...\n");
+	printf("ì •ì  ì§€ì—­ ë³€ìˆ˜(static)ë¥¼ ì‚¬ìš©í•œ í•¨ìˆ˜...\n");
 	for (i = 0; i < 3; i++)
 	{
 		static_func();
