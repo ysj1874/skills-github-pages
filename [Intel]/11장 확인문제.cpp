@@ -9,7 +9,7 @@ int main(void)
 		if (ch >= 'a') cnt++;
 		ch = getchar();
 	}
-	printf("¼Ò¹®ÀÚÀÇ °³¼ö : %d\n", cnt);
+	printf("Â¼Ã’Â¹Â®Ã€ÃšÃ€Ã‡ Â°Â³Â¼Ã¶ : %d\n", cnt);
 
 	return 0;
 }
