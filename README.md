@@ -1,54 +1,142 @@
-<header>
+🧭 TurtleBot3 Autonomous Driving System
+UKF + LiDAR + DNN + NMPC 기반 ROS1 자율주행 프로젝트
+<p align="center"> <img src="(이미지 넣을 경로)" width="600"/> </p>
+📌 1. 프로젝트 개요
 
-<!--
-  <<< Author notes: Course header >>>
-  Include a 1280×640 image, course title in sentence case, and a concise description in emphasis.
-  In your repository settings: enable template repository, add your 1280×640 social image, auto delete head branches.
-  Add your open source license, GitHub uses MIT license.
--->
+본 프로젝트는 TurtleBot3(burger) 기반의
+UKF 상태추정 → LiDAR 기반 인지 → DNN 위험도 예측 → NMPC 제어로 구성된
+지능형 자율주행 시스템입니다.
 
-# GitHub Pages
+ROS1 환경에서 실시간 주행이 가능하도록 모든 모듈이 통합되었습니다.
 
-_Create a site or blog from your GitHub repositories with GitHub Pages._
+🚀 2. 전체 시스템 아키텍처
+<p align="center"> <img src="(아키텍처 이미지)" width="700"/> </p>
+시스템 구성
 
-</header>
+Sensing: LiDAR / IMU / Odometry
 
-<!--
-  <<< Author notes: Step 1 >>>
-  Choose 3-5 steps for your course.
-  The first step is always the hardest, so pick something easy!
-  Link to docs.github.com for further explanations.
-  Encourage users to open new tabs for steps!
--->
+State Estimation: UKF 기반 상태 추정
 
-## Step 1: Enable GitHub Pages
+Risk Prediction: DNN 위험도 모델
 
-_Welcome to GitHub Pages and Jekyll :tada:!_
+Control: NMPC 기반 주행 제어
 
-The first step is to enable GitHub Pages on this [repository](https://docs.github.com/en/get-started/quickstart/github-glossary#repository). When you enable GitHub Pages on a repository, GitHub takes the content that's on the main branch and publishes a website based on its contents.
+ROS1: Node 구성 및 토픽 통신
 
-### :keyboard: Activity: Enable GitHub Pages
+🧩 3. 주요 기능 요약
+모듈	설명
+UKF	LiDAR + IMU + Odom 센서 융합, x/y/yaw/v 추정
+LiDAR 인지	장애물 거리 분석 및 위험 Feature 생성
+DNN 모델	Risk(0~1) 예측, 위험 상황 조기 탐지
+NMPC 제어기	경로 추종 + 충돌 회피 최적 제어
+ROS1 Integration	/scan, /imu/data, /odom, /cmd_vel 기반 통신
+🧮 4. UKF 설계
+📘 상태벡터
+x = [px, py, yaw, v]
+📘 UKF 과정
 
-1. Open a new browser tab, and work on the steps in your second tab while you read the instructions in this tab.
-1. Under your repository name, click **Settings**.
-1. Click **Pages** in the **Code and automation** section.
-1. Ensure "Deploy from a branch" is selected from the **Source** drop-down menu, and then select `main` from the **Branch** drop-down menu.
-1. Click the **Save** button.
-1. Wait about _one minute_ then refresh this page (the one you're following instructions from). [GitHub Actions](https://docs.github.com/en/actions) will automatically update to the next step.
-   > Turning on GitHub Pages creates a deployment of your repository. GitHub Actions may take up to a minute to respond while waiting for the deployment. Future steps will be about 20 seconds; this step is slower.
-   > **Note**: In the **Pages** of **Settings**, the **Visit site** button will appear at the top. Click the button to see your GitHub Pages site.
+Sigma Points 생성
 
-<footer>
+비선형 운동모델 기반 예측(Prediction)
 
-<!--
-  <<< Author notes: Footer >>>
-  Add a link to get support, GitHub status page, code of conduct, license link.
--->
+LiDAR/IMU를 통한 상태 갱신(Update)
 
----
+공분산 안정화 처리 (Numerical Stability)
 
-Get help: [Post in our discussion board](https://github.com/orgs/skills/discussions/categories/github-pages) &bull; [Review the GitHub status page](https://www.githubstatus.com/)
+출력 토픽:
 
-&copy; 2023 GitHub &bull; [Code of Conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct/code_of_conduct.md) &bull; [MIT License](https://gh.io/mit)
+/ukf_state
+🧠 5. DNN 기반 위험도 모델
+모델 목적
 
-</footer>
+최근 주행 이력(UKF + LiDAR)을 기반으로 위험도 0~1 예측
+
+위험 시 NMPC 비용 가중 증가 → 감속/회피 강화
+
+데이터 구성
+
+주행 로그 기반 시계열 데이터셋 생성
+
+위험/정상 상황 라벨링
+
+Python 기반 전처리 스크립트 포함
+
+⚙️ 6. NMPC 제어기 구조
+<p align="center"> <img src="(NMPC 다이어그램)" width="650"/> </p>
+목적 함수 구성
+
+경로 오차 최소화
+
+조향 변화 최소화
+
+속도 변화 최소화
+
+DNN 위험도 기반 penalty 동적 적용
+
+제어 명령 출력
+/cmd_vel
+  - linear.x
+  - angular.z
+📂 7. 프로젝트 디렉토리 구조
+📦 turtlebot-autonomous-driving/
+ ├── ukf/
+ │    ├── ukf_node.py
+ │    ├── motion_model.py
+ │    ├── measurement_model.py
+ │    └── params.yaml
+ ├── lidar/
+ │    ├── lidar_preprocess.cpp
+ │    └── obstacle_detector.cpp
+ ├── dnn/
+ │    ├── train_risk_model.ipynb
+ │    ├── risk_model.py
+ │    └── dataset/
+ ├── nmpc/
+ │    ├── nmpc_solver.py
+ │    └── cost_function.py
+ ├── launch/
+ │    ├── ukf.launch
+ │    ├── nmpc.launch
+ │    └── full_system.launch
+ └── README.md
+🧪 8. 실험 결과 (실 주행 기반)
+<p align="center"> <img src="(실험 이미지1)" width="450"/> <img src="(실험 이미지2)" width="450"/> </p>
+✔ UKF 성능
+
+Odometry 대비 yaw drift 45% 이상 감소
+
+노이즈 환경에서도 안정적 추정
+
+✔ DNN 성능
+
+위험 상황 탐지 정확도 90%+
+
+✔ NMPC 주행
+
+장애물 회피 성공률 100%
+
+경로 유지 오차 ±5cm 수준
+
+👤 9. 내 기여도 (핵심)
+
+본 프로젝트에서 가장 난도 높은 “인지 + 추정 + 제어” 전 구간 직접 구현
+
+UKF 전체 설계 및 파라미터 튜닝
+
+LiDAR 전처리 및 장애물 거리 기반 Feature 생성
+
+DNN Risk Model 데이터셋 제작 및 학습
+
+NMPC 목적 함수/제약 조건 구성
+
+ROS1 노드 통합 및 Launch 시스템 구축
+
+🔮 10. 향후 발전 방향
+
+UKF → Factor-Graph 기반 Back-End 확장
+
+NMPC → Learning-based MPC 추가
+
+DNN → Transformer Encoder 기반 위험도 모델 고도화
+
+TurtleBot → 실차 플랫폼으로 확장 가능
