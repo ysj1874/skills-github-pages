@@ -1,4 +1,5 @@
 🧭 UKF + LiDAR + DNN + NMPC 기반 TurtleBot3 자율주행 시스템
+🧭 UKF + LiDAR + DNN + NMPC 기반 TurtleBot3 자율주행 시스템
 
 Graduation Project — ROS1 Autonomous Driving System
 
@@ -19,25 +20,25 @@ NMPC 제어기와 결합하여 경로 추종 + 안정 주행
 ROS1 환경에서 모듈 간 실시간 통합
 
 🧱 시스템 아키텍처
-      [Sensors]
-   ┌─────────────────────────┐
-   │  LiDAR  |  IMU  | Odom  │
-   └─────────────────────────┘
-                │
-                ▼
-        [UKF State Estimator]
-      (x, y, yaw, velocity)
-                │
-                ▼
-      [DNN Risk Prediction]
-         (Risk Score 0~1)
-                │
-                ▼
-        [NMPC Controller]
-     (Optimal v, ω generation)
-                │
-                ▼
-        [TurtleBot3 Motion]
+[Sensors]
+┌─────────────────────────┐
+│ LiDAR | IMU | Odom │
+└─────────────────────────┘
+│
+▼
+[UKF State Estimator]
+(x, y, yaw, velocity)
+│
+▼
+[DNN Risk Prediction]
+(Risk Score 0~1)
+│
+▼
+[NMPC Controller]
+(Optimal v, ω generation)
+│
+▼
+[TurtleBot3 Motion]
 🔍 주요 기능
 ✔ UKF (Unscented Kalman Filter)
 
@@ -73,7 +74,8 @@ NMPC 비용항에 가중치로 반영
 
 📊 실험 결과
 1) Raw LiDAR vs UKF LiDAR
-<p align="center"><img src="/mnt/data/0d34e0c9-f680-4ac4-8d2b-bd00cc2af37e.png" width="650"></p>
+
+
 
 결과 해석
 
@@ -84,7 +86,8 @@ UKF 필터 후 안정적인 곡선 형태 유지
 장애물 거리 측정 신뢰도 향상
 
 2) NMPC 제어 안정성 비교
-<p align="center"><img src="/mnt/data/5d5d6411-430a-47d7-94af-4d8777875274.png" width="700"></p>
+
+
 
 결과 해석
 
@@ -95,7 +98,8 @@ UKF 기반 NMPC는 기울기 변화가 부드러움
 감속/가속 구간에서도 제어 입력이 안정적
 
 3) DNN + NMPC 연산 성능 개선
-<p align="center"><img src="/mnt/data/38f8744a-9d54-4b19-93ba-8b49ac9fb4a7.png" width="700"></p>
+
+
 
 결과 해석
 
@@ -107,24 +111,24 @@ NMPC 단독 대비 진동 적고 제어 일관성 증가
 
 🗂 프로젝트 디렉터리 구조
 📦 turtlebot-autonomous-driving/
- ├── ukf/
- │    ├── ukf_node.py
- │    ├── motion_model.py
- │    ├── measurement_model.py
- ├── lidar/
- │    ├── lidar_preprocess.cpp
- │    └── obstacle_detector.cpp
- ├── dnn/
- │    ├── risk_model.py
- │    ├── train_risk_model.ipynb
- ├── nmpc/
- │    ├── nmpc_solver.py
- │    └── cost_function.py
- ├── launch/
- │    ├── ukf.launch
- │    ├── nmpc.launch
- │    └── full_system.launch
- └── README.md
+├── ukf/
+│ ├── ukf_node.py
+│ ├── motion_model.py
+│ ├── measurement_model.py
+├── lidar/
+│ ├── lidar_preprocess.cpp
+│ └── obstacle_detector.cpp
+├── dnn/
+│ ├── risk_model.py
+│ ├── train_risk_model.ipynb
+├── nmpc/
+│ ├── nmpc_solver.py
+│ └── cost_function.py
+├── launch/
+│ ├── ukf.launch
+│ ├── nmpc.launch
+│ └── full_system.launch
+└── README.md
 🔧 사용 기술 스택
 
 ROS1 (melodic/noetic)
